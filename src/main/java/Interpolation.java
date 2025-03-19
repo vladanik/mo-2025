@@ -6,7 +6,6 @@ public class Interpolation {
 
     static Map<Double, Double> pairs = new HashMap<>();
     static double x;
-    static double W = 0;
 
     private static void input() {
         if (userInput) {
@@ -33,9 +32,16 @@ public class Interpolation {
             pairs.put(4.0, 1023.0);
             x = 3;
         }
+        System.out.println("----------------------------------------------------------------------------------");
+        for (Double xn : pairs.keySet()) {
+            System.out.printf("f(%.1f) = %.1f, ", xn, pairs.get(xn));
+        }
+        System.out.println("x = " + x);
+        System.out.println("----------------------------------------------------------------------------------");
     }
 
-    private static void lagrunge() {
+    private static double lagrunge() {
+        double w = 0.0;
         for (Double xn : pairs.keySet()) {
             double fracU = 1.0;
             double fracD = 1.0;
@@ -45,24 +51,43 @@ public class Interpolation {
                     fracD *= xn - xf;
                 }
             }
-            W += pairs.get(xn) * (fracU / fracD);
+            w += pairs.get(xn) * (fracU / fracD);
         }
+        return w;
     }
 
-    private static void getResult() {
-        System.out.println("----------------------------------------------------------------------------------");
-        for (Double xn : pairs.keySet()) {
-            System.out.print("f(" + xn + ") = " + pairs.get(xn) + ", ");
+    private static double newtonIR() {
+        int n = pairs.size();
+        List<Double> xVals = new ArrayList<>(pairs.keySet());
+        double[][] diffQuot = new double[n][n];
+
+        for (int i = 0; i < n; i++) {
+            diffQuot[i][0] = pairs.get(xVals.get(i));
         }
-        System.out.println("x = " + x);
-        System.out.println();
-        System.out.println("W(x) = " + W);
-        System.out.println("----------------------------------------------------------------------------------");
+        for (int j = 1; j < n; j++) {
+            for (int i = 0; i < n - j; i++) {
+                diffQuot[i][j] = (diffQuot[i + 1][j - 1] - diffQuot[i][j - 1]) / (xVals.get(i + j) - xVals.get(i));
+            }
+        }
+
+        double w = diffQuot[0][0];
+        for (int i = 1; i < n; i++) {
+            double product = 1;
+            for (int j = 0; j < i; j++) {
+                product *= (x - xVals.get(j));
+            }
+            w += diffQuot[0][i] * product;
+        }
+        return w;
+    }
+
+    private static void getResult(String method, double result) {
+        System.out.printf("%s: W(x) = %.1f%n", method, result);
     }
 
     public static void main(String[] args) {
         input();
-        lagrunge();
-        getResult();
+        getResult("LaGrunge", lagrunge());
+        getResult("NewtonIR", newtonIR());
     }
 }
