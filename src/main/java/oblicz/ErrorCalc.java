@@ -1,3 +1,5 @@
+package oblicz;
+
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
 public class ErrorCalc {

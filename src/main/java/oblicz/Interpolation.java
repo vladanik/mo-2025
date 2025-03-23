@@ -1,3 +1,5 @@
+package oblicz;
+
 import java.util.*;
 
 public class Interpolation {
@@ -82,12 +84,12 @@ public class Interpolation {
     }
 
     private static void getResult(String method, double result) {
-        System.out.printf("%s: W(x) = %.1f%n", method, result);
+        System.out.printf("%s:\tW(x) = %.1f%n", method, result);
     }
 
     public static void main(String[] args) {
         input();
         getResult("LaGrunge", lagrunge());
-        getResult("NewtonIR", newtonIR());
+        getResult("Newton IR", newtonIR());
     }
 }
