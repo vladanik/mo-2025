@@ -17,8 +17,13 @@ public class Optimum {
     public static final Boolean FIND_MIN = example1 || example2;
     public static final Boolean INCLUDE_DETAILS = false;
 
-    public static double a = example1 ? 60 : (example2 ? 1 : -10);
-    public static double b = example1 ? 150 : (example2 ? 2 : -3);
+    public static double a;
+    public static double b;
+    
+    public static void setDefaultRegion() {
+        a = example1 ? 60 : (example2 ? 1 : -10);
+        b = example1 ? 150 : (example2 ? 2 : -3);
+    }
 
     public static double f(double x) {
         if (example1) {
@@ -118,7 +123,7 @@ public class Optimum {
         return fibs;
     }
 
-    public static OptimizationResult dwudzielnaSearch(double a, double b, double epsilon, int iterationLimit) {
+    public static OptimizationResult dwudzielnaSearch(double epsilon, int iterationLimit) {
         double x_s = (a + b) / 2.0;
         double L = b - a;
         int iteration = 0;
@@ -163,7 +168,7 @@ public class Optimum {
         return new OptimizationResult(x_s, f(x_s), iteration, details.toString());
     }
 
-    public static OptimizationResult fibonacciSearch(double a, double b, double epsilon, int iterationLimit) {
+    public static OptimizationResult fibonacciSearch(double epsilon, int iterationLimit) {
         double L = b - a;
         int n;
         if (epsilon > 0) {
@@ -223,7 +228,7 @@ public class Optimum {
         return new OptimizationResult(x, f(x), iter, details.toString());
     }
 
-    public static OptimizationResult bisectionMethod(double a, double b, double epsilon, int iterationLimit) {
+    public static OptimizationResult bisectionMethod(double epsilon, int iterationLimit) {
         if (fp(a)[1] * fp(b)[1] >= 0) {
             return new OptimizationResult(Double.NaN, Double.NaN, 0);
         }
@@ -254,7 +259,7 @@ public class Optimum {
         return new OptimizationResult(x_mid, f(x_mid), iter, details.toString());
     }
 
-    public static OptimizationResult newtonMethod(double a, double b, double epsilon, int iterationLimit) {
+    public static OptimizationResult newtonMethod(double epsilon, int iterationLimit) {
         if (fp(a)[2] * fp(b)[2] < 0 || fp(a)[3] * fp(b)[3] < 0) {
             return new OptimizationResult(Double.NaN, Double.NaN, 0);
         }
@@ -283,7 +288,7 @@ public class Optimum {
         return new OptimizationResult(x0, f(x0), iter, details.toString());
     }
 
-    public static OptimizationResult secantMethod(double a, double b, double epsilon, int iterationLimit) {
+    public static OptimizationResult secantMethod(double epsilon, int iterationLimit) {
         double x0 = fp(a)[1] > 0 ? b : a;
         int iter = 0;
         StringBuilder details = new StringBuilder();
@@ -328,81 +333,96 @@ public class Optimum {
 
     private static void runDwudzielna() {
         System.out.println("\n======= Metoda Dwudzielna =======");
+        setDefaultRegion();
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = dwudzielnaSearch(a, b, e, maxIter);
+            OptimizationResult result = dwudzielnaSearch(e, maxIter);
             System.out.println(result);
+            setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = dwudzielnaSearch(a, b, epsilonZero, i);
+            OptimizationResult result = dwudzielnaSearch(epsilonZero, i);
             System.out.println(result);
+            setDefaultRegion();
         }
     }
 
     private static void runFibonacciego() {
         System.out.println("\n======= Metoda Fibonacciego =======");
+        setDefaultRegion();
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = fibonacciSearch(a, b, e, maxIter);
+            OptimizationResult result = fibonacciSearch(e, maxIter);
             System.out.println(result);
+            setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = fibonacciSearch(a, b, epsilonZero, i);
+            OptimizationResult result = fibonacciSearch(epsilonZero, i);
             System.out.println(result);
+            setDefaultRegion();
         }
     }
 
     private static void runBisekcji() {
         System.out.println("\n======= Metoda Bisekcji =======");
+        setDefaultRegion();
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = bisectionMethod(a, b, e, maxIter);
+            OptimizationResult result = bisectionMethod(e, maxIter);
             System.out.println(result);
+            setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = bisectionMethod(a, b, epsilonZero, i);
+            OptimizationResult result = bisectionMethod(epsilonZero, i);
             System.out.println(result);
+            setDefaultRegion();
         }
     }
 
     private static void runStycznych() {
         System.out.println("\n======= Metoda Stycznych =======");
+        setDefaultRegion();
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = newtonMethod(a, b, e, maxIter);
+            OptimizationResult result = newtonMethod(e, maxIter);
             System.out.println(result);
+            setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = newtonMethod(a, b, epsilonZero, i);
+            OptimizationResult result = newtonMethod(epsilonZero, i);
             System.out.println(result);
+            setDefaultRegion();
         }
     }
 
     private static void runSiecznych() {
         System.out.println("\n======= Metoda Siecznych =======");
+        setDefaultRegion();
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = secantMethod(a, b, e, maxIter);
+            OptimizationResult result = secantMethod(e, maxIter);
             System.out.println(result);
+            setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = secantMethod(a, b, epsilonZero, i);
+            OptimizationResult result = secantMethod(epsilonZero, i);
             System.out.println(result);
+            setDefaultRegion();
         }
     }
 }
