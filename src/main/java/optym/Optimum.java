@@ -2,20 +2,28 @@ package optym;
 
 import org.apache.commons.math3.analysis.differentiation.DerivativeStructure;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Optimum {
+
+    public static final Boolean IS_TEST = true;
 
     public static final Boolean example1 = false; // (100 - x)^2
     public static final Boolean example2 = false; // 1/3x^3 + 1/2x^2 - 5x + 2
     public static final Boolean example3 = true; // 1/3x^3 + 2.05x^2 - 9x + 15
 
     public static final double epsilonZero = 0;
-    public static final double[] epsilons = { 0.1, 0.01, 0.001, 0.00001, 0.000000001, 0.0000000000001 };
+    public static final double[] epsilons_S = { 0.1, 0.01, 0.001, 0.00001, 0.000000001, 0.0000000000001 };
+    public static final double[] epsilons_T = { 0.001 };
+    public static final double[] epsilons = IS_TEST ? epsilons_T : epsilons_S;
     public static final int maxIter = 100000;
-    public static final int[] iterations = { 3, 5, 7, 10, 15, 30, 50 };
+    public static final int[] iterations_S = { 3, 5, 7, 10, 15, 30, 50 };
+    public static final int[] iterations_T = { };
+    public static final int[] iterations = IS_TEST ? iterations_T : iterations_S;
 
     public static final double X = example1 ? 100.0 : (example2 ? (-1.0 + Math.sqrt(21)) / 2.0 : (-41.0 - Math.sqrt(5281)) / 20.0);
     public static final Boolean FIND_MIN = example1 || example2;
-    public static final Boolean INCLUDE_DETAILS = false;
 
     public static double a;
     public static double b;
@@ -98,7 +106,7 @@ public class Optimum {
 
         @Override
         public String toString() {
-            return "x: " + optimum + ", f(x): " + optimumValue + ", iterations: " + iterations + (INCLUDE_DETAILS ? ("\n" + details) : "");
+            return "x: " + optimum + ", f(x): " + optimumValue + ", iterations: " + iterations + (IS_TEST ? ("\n" + details) : "");
         }
     }
 
@@ -130,6 +138,7 @@ public class Optimum {
         StringBuilder details = new StringBuilder();
         details.append("iter: x, f(x), a, b, L\n");
         details.append(iteration + ": " + x_s + ", " + f(x_s) + ", " + a + ", " + b + ", " + L + "\n");
+        List<double[]> points = new ArrayList<>();
 
         while (L > epsilon && iteration < iterationLimit) {
             iteration++;
@@ -164,7 +173,11 @@ public class Optimum {
                 }
             }
             details.append(iteration + ": " + x_s + ", " + f(x_s) + ", " + a + ", " + b + ", " + L + "\n");
+            points.add(new double[]{x_s, f(x_s)});
         }
+        setDefaultRegion();
+        Chart chart = new Chart("Dwudzielna", getFunctionPoints(), points, new double[]{x_s, f(x_s)});
+        chart.show();
         return new OptimizationResult(x_s, f(x_s), iteration, details.toString());
     }
 
@@ -189,6 +202,9 @@ public class Optimum {
         StringBuilder details = new StringBuilder();
         details.append("iter: x1, f(x1), x2, f(x2)\n");
         details.append(iter + ": " + x1 + ", " + f(x1) + ", " + x2 + ", " + f(x2) + "\n");
+        List<double[]> points = new ArrayList<>();
+        points.add(new double[]{x1, f(x1)});
+        points.add(new double[]{x2, f(x2)});
         while (n > 1) {
             iter++;
             if (epsilon > 0 && Math.abs(x2 - x1) < epsilon) {
@@ -220,11 +236,16 @@ public class Optimum {
                 }
             }
             details.append(iter + ": " + x1 + ", " + f(x1) + ", " + x2 + ", " + f(x2) + "\n");
+            points.add(new double[]{x1, f(x1)});
+            points.add(new double[]{x2, f(x2)});
             if (epsilon == 0 && iter >= iterationLimit) {
                 break;
             }
         }
         double x = (a + b) / 2.0;
+        setDefaultRegion();
+        Chart chart = new Chart("Fibonacciego", getFunctionPoints(), points, new double[]{x, f(x)});
+        chart.show();
         return new OptimizationResult(x, f(x), iter, details.toString());
     }
 
@@ -424,5 +445,13 @@ public class Optimum {
             System.out.println(result);
             setDefaultRegion();
         }
+    }
+
+    private static List<double[]> getFunctionPoints() {
+        List<double[]> points = new ArrayList<>();
+        for (double i = a - 1; i <= b + 1; i += 0.1) {
+            points.add(new double[]{i, f(i)});
+        }
+        return points;
     }
 }
