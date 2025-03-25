@@ -175,7 +175,6 @@ public class Optimum {
             details.append(iteration + ": " + x_s + ", " + f(x_s) + ", " + a + ", " + b + ", " + L + "\n");
             points.add(new double[]{x_s, f(x_s)});
         }
-        setDefaultRegion();
         Chart chart = new Chart("Dwudzielna", getFunctionPoints(), points, new double[]{x_s, f(x_s)});
         chart.show();
         return new OptimizationResult(x_s, f(x_s), iteration, details.toString());
@@ -243,7 +242,6 @@ public class Optimum {
             }
         }
         double x = (a + b) / 2.0;
-        setDefaultRegion();
         Chart chart = new Chart("Fibonacciego", getFunctionPoints(), points, new double[]{x, f(x)});
         chart.show();
         return new OptimizationResult(x, f(x), iter, details.toString());
@@ -257,6 +255,7 @@ public class Optimum {
         double x_mid;
         StringBuilder details = new StringBuilder();
         details.append("iter: x, f(x), a, b\n");
+        List<double[]> points = new ArrayList<>();
         while (true) {
             iter++;
             x_mid = (a + b) / 2.0;
@@ -266,7 +265,7 @@ public class Optimum {
                     break;
                 }
             } else {
-                if (iter >= iterationLimit) {
+                if (iter >= iterationLimit || Math.abs(fpm) <= epsilon) {
                     break;
                 }
             }
@@ -276,7 +275,10 @@ public class Optimum {
                 a = x_mid;
             }
             details.append(iter + ": " + x_mid + ", " + f(x_mid) + ", " + a + ", " + b + "\n");
+            points.add(new double[]{x_mid, f(x_mid)});
         }
+        Chart chart = new Chart("Bisekcji", getFunctionPoints(), points, new double[]{x_mid, f(x_mid)});
+        chart.show();
         return new OptimizationResult(x_mid, f(x_mid), iter, details.toString());
     }
 
@@ -289,6 +291,8 @@ public class Optimum {
         StringBuilder details = new StringBuilder();
         details.append("iter: x0, f(x0)\n");
         details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
+        List<double[]> points = new ArrayList<>();
+        points.add(new double[]{x0, f(x0)});
         while (true) {
             iter++;
             double x1 = x0 - fp(x0)[1] / fp(x0)[2];
@@ -305,7 +309,10 @@ public class Optimum {
             }
             x0 = x1;
             details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
+            points.add(new double[]{x0, f(x0)});
         }
+        Chart chart = new Chart("Stycznych (Newtona)", getFunctionPoints(), points, new double[]{x0, f(x0)});
+        chart.show();
         return new OptimizationResult(x0, f(x0), iter, details.toString());
     }
 
@@ -315,6 +322,8 @@ public class Optimum {
         StringBuilder details = new StringBuilder();
         details.append("iter: x0, f(x0)\n");
         details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
+        List<double[]> points = new ArrayList<>();
+        points.add(new double[]{x0, f(x0)});
         while (true) {
             iter++;
             double x1;
@@ -336,7 +345,10 @@ public class Optimum {
             }
             x0 = x1;
             details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
+            points.add(new double[]{x0, f(x0)});
         }
+        Chart chart = new Chart("Siecznych", getFunctionPoints(), points, new double[]{x0, f(x0)});
+        chart.show();
         return new OptimizationResult(x0, f(x0), iter, details.toString());
     }
 
@@ -449,6 +461,7 @@ public class Optimum {
 
     private static List<double[]> getFunctionPoints() {
         List<double[]> points = new ArrayList<>();
+        setDefaultRegion();
         for (double i = a - 1; i <= b + 1; i += 0.1) {
             points.add(new double[]{i, f(i)});
         }
