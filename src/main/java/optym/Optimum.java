@@ -175,8 +175,7 @@ public class Optimum {
             details.append(iteration + ": " + x_s + ", " + f(x_s) + ", " + a + ", " + b + ", " + L + "\n");
             points.add(new double[]{x_s, f(x_s)});
         }
-        Chart chart = new Chart("Dwudzielna", getFunctionPoints(), points, new double[]{x_s, f(x_s)});
-        chart.show();
+        showChart("Dwudzielna", points, x_s);
         return new OptimizationResult(x_s, f(x_s), iteration, details.toString());
     }
 
@@ -242,12 +241,11 @@ public class Optimum {
             }
         }
         double x = (a + b) / 2.0;
-        Chart chart = new Chart("Fibonacciego", getFunctionPoints(), points, new double[]{x, f(x)});
-        chart.show();
+        showChart("Fibonacciego", points, x);
         return new OptimizationResult(x, f(x), iter, details.toString());
     }
 
-    public static OptimizationResult bisectionMethod(double epsilon, int iterationLimit) {
+    public static OptimizationResult bisectionSearch(double epsilon, int iterationLimit) {
         if (fp(a)[1] * fp(b)[1] >= 0) {
             return new OptimizationResult(Double.NaN, Double.NaN, 0);
         }
@@ -277,12 +275,11 @@ public class Optimum {
             details.append(iter + ": " + x_mid + ", " + f(x_mid) + ", " + a + ", " + b + "\n");
             points.add(new double[]{x_mid, f(x_mid)});
         }
-        Chart chart = new Chart("Bisekcji", getFunctionPoints(), points, new double[]{x_mid, f(x_mid)});
-        chart.show();
+        showChart("Bisekcji", points, x_mid);
         return new OptimizationResult(x_mid, f(x_mid), iter, details.toString());
     }
 
-    public static OptimizationResult newtonMethod(double epsilon, int iterationLimit) {
+    public static OptimizationResult newtonSearch(double epsilon, int iterationLimit) {
         if (fp(a)[2] * fp(b)[2] < 0 || fp(a)[3] * fp(b)[3] < 0) {
             return new OptimizationResult(Double.NaN, Double.NaN, 0);
         }
@@ -311,12 +308,11 @@ public class Optimum {
             details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
             points.add(new double[]{x0, f(x0)});
         }
-        Chart chart = new Chart("Stycznych (Newtona)", getFunctionPoints(), points, new double[]{x0, f(x0)});
-        chart.show();
+        showChart("Stycznych (Newtona)", points, x0);
         return new OptimizationResult(x0, f(x0), iter, details.toString());
     }
 
-    public static OptimizationResult secantMethod(double epsilon, int iterationLimit) {
+    public static OptimizationResult secantSearch(double epsilon, int iterationLimit) {
         double x0 = fp(a)[1] > 0 ? b : a;
         int iter = 0;
         StringBuilder details = new StringBuilder();
@@ -347,9 +343,51 @@ public class Optimum {
             details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
             points.add(new double[]{x0, f(x0)});
         }
-        Chart chart = new Chart("Siecznych", getFunctionPoints(), points, new double[]{x0, f(x0)});
-        chart.show();
+        showChart("Siecznych", points, x0);
         return new OptimizationResult(x0, f(x0), iter, details.toString());
+    }
+
+    public static OptimizationResult goldenSearch(double epsilon, int iterationLimit) {
+        final double k = (Math.sqrt(5) - 1) / 2;
+        double x1 = b - k * (b - a);
+        double x2 = a + k * (b - a);
+        int iter = 0;
+        StringBuilder details = new StringBuilder();
+        details.append("iter: x1, f(x1), x2, f(x2)\n");
+        details.append(iter + ": " + x1 + ", " + f(x1) + ", " + x2 + ", " + f(x2) + "\n");
+        List<double[]> points = new ArrayList<>();
+        points.add(new double[]{x1, f(x1)});
+        points.add(new double[]{x2, f(x2)});
+        while (Math.abs(x2 - x1) >= epsilon && iter < iterationLimit) {
+            iter++;
+            if (FIND_MIN) {
+                if (f(x1) < f(x2)) {
+                    b = x2;
+                    x2 = x1;
+                    x1 = b - k * (b - a);
+                } else {
+                    a = x1;
+                    x1 = x2;
+                    x2 = a + k * (b - a);
+                }
+            } else {
+                if (f(x1) > f(x2)) {
+                    b = x2;
+                    x2 = x1;
+                    x1 = b - k * (b - a);
+                } else {
+                    a = x1;
+                    x1 = x2;
+                    x2 = a + k * (b - a);
+                }
+            }
+            details.append(iter + ": " + x1 + ", " + f(x1) + ", " + x2 + ", " + f(x2) + "\n");
+            points.add(new double[]{x1, f(x1)});
+            points.add(new double[]{x2, f(x2)});
+        }
+        double x = (a + b) / 2.0;
+        showChart("Zlotego Podzialu", points, x);
+        return new OptimizationResult(x, f(x), iter, details.toString());
     }
 
     public static void main(String[] args) {
@@ -362,6 +400,7 @@ public class Optimum {
             runStycznych();
             runSiecznych();
         }
+        runZlotegoPodzialu();
     }
 
     private static void runDwudzielna() {
@@ -408,14 +447,14 @@ public class Optimum {
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = bisectionMethod(e, maxIter);
+            OptimizationResult result = bisectionSearch(e, maxIter);
             System.out.println(result);
             setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = bisectionMethod(epsilonZero, i);
+            OptimizationResult result = bisectionSearch(epsilonZero, i);
             System.out.println(result);
             setDefaultRegion();
         }
@@ -427,14 +466,14 @@ public class Optimum {
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = newtonMethod(e, maxIter);
+            OptimizationResult result = newtonSearch(e, maxIter);
             System.out.println(result);
             setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = newtonMethod(epsilonZero, i);
+            OptimizationResult result = newtonSearch(epsilonZero, i);
             System.out.println(result);
             setDefaultRegion();
         }
@@ -446,14 +485,33 @@ public class Optimum {
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
 
-            OptimizationResult result = secantMethod(e, maxIter);
+            OptimizationResult result = secantSearch(e, maxIter);
             System.out.println(result);
             setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
 
-            OptimizationResult result = secantMethod(epsilonZero, i);
+            OptimizationResult result = secantSearch(epsilonZero, i);
+            System.out.println(result);
+            setDefaultRegion();
+        }
+    }
+
+    private static void runZlotegoPodzialu() {
+        System.out.println("\n======= Metoda Zlotego Podzialu =======");
+        setDefaultRegion();
+        for (double e : epsilons) {
+            System.out.println("\n=== Epsilon: " + e + " ===");
+
+            OptimizationResult result = goldenSearch(e, maxIter);
+            System.out.println(result);
+            setDefaultRegion();
+        }
+        for (int i : iterations) {
+            System.out.println("\n=== Max iterations: " + i + " ===");
+
+            OptimizationResult result = goldenSearch(epsilonZero, i);
             System.out.println(result);
             setDefaultRegion();
         }
@@ -466,5 +524,12 @@ public class Optimum {
             points.add(new double[]{i, f(i)});
         }
         return points;
+    }
+
+    private static void showChart(String name, List<double[]> points, double x) {
+        if (IS_TEST) {
+            Chart chart = new Chart(name, getFunctionPoints(), points, new double[]{x, f(x)});
+            chart.show();
+        }
     }
 }
