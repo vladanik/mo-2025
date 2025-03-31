@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Optimum {
-
     public static final Boolean IS_TEST = true;
 
     public static final double epsilonZero = 0;
@@ -39,12 +38,12 @@ public class Optimum {
         DerivativeStructure term2 = xDS.pow(2).multiply(2.05);
         DerivativeStructure term3 = xDS.multiply(-9);
         DerivativeStructure result = term1.add(term2).add(term3).add(15);
-
-        double value = result.getValue();
-        double derivative1 = result.getPartialDerivative(1);
-        double derivative2 = result.getPartialDerivative(2);
-        double derivative3 = result.getPartialDerivative(3);
-        return new double[]{value, derivative1, derivative2, derivative3};
+        return new double[]{
+                result.getValue(),
+                result.getPartialDerivative(1),
+                result.getPartialDerivative(2),
+                result.getPartialDerivative(3)
+        };
     }
 
     public static class OptimizationResult {
@@ -52,12 +51,6 @@ public class Optimum {
         public double optimumValue;
         public int iterations;
         public String details;
-
-        public OptimizationResult(double optimum, double optimumValue, int iterations) {
-            this.optimum = optimum;
-            this.optimumValue = optimumValue;
-            this.iterations = iterations;
-        }
 
         public OptimizationResult(double optimum, double optimumValue, int iterations, String details) {
             this.optimum = optimum;
@@ -68,7 +61,8 @@ public class Optimum {
 
         @Override
         public String toString() {
-            return "x: " + optimum + ", f(x): " + optimumValue + ", iterations: " + iterations + (IS_TEST ? ("\n" + details) : "");
+            return "x: " + optimum + ", f(x): " + optimumValue + ", iterations: " + iterations
+                    + (IS_TEST && details != null ? ("\n" + details) : "");
         }
     }
 
@@ -165,6 +159,7 @@ public class Optimum {
         List<double[]> points = new ArrayList<>();
         points.add(new double[]{x1, f(x1)});
         points.add(new double[]{x2, f(x2)});
+
         while (n > 1) {
             iter++;
             if (epsilon > 0 && Math.abs(x2 - x1) < epsilon) {
@@ -209,13 +204,14 @@ public class Optimum {
 
     public static OptimizationResult bisectionSearch(double epsilon, int iterationLimit) {
         if (fp(a)[1] * fp(b)[1] >= 0) {
-            return new OptimizationResult(Double.NaN, Double.NaN, 0);
+            return new OptimizationResult(Double.NaN, Double.NaN, 0, null);
         }
         int iter = 0;
         double x_mid;
         StringBuilder details = new StringBuilder();
         details.append("iter: x, f(x), a, b\n");
         List<double[]> points = new ArrayList<>();
+
         while (true) {
             iter++;
             x_mid = (a + b) / 2.0;
@@ -243,7 +239,7 @@ public class Optimum {
 
     public static OptimizationResult newtonSearch(double epsilon, int iterationLimit) {
         if (fp(a)[2] * fp(b)[2] < 0 || fp(a)[3] * fp(b)[3] < 0) {
-            return new OptimizationResult(Double.NaN, Double.NaN, 0);
+            return new OptimizationResult(Double.NaN, Double.NaN, 0, null);
         }
         double x0 = (fp(a)[3] * fp(a)[1] > 0) ? a : b;
         int iter = 0;
@@ -252,6 +248,7 @@ public class Optimum {
         details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
         List<double[]> points = new ArrayList<>();
         points.add(new double[]{x0, f(x0)});
+
         while (true) {
             iter++;
             double x1 = x0 - fp(x0)[1] / fp(x0)[2];
@@ -282,6 +279,7 @@ public class Optimum {
         details.append(iter + ": " + x0 + ", " + f(x0) + "\n");
         List<double[]> points = new ArrayList<>();
         points.add(new double[]{x0, f(x0)});
+
         while (true) {
             iter++;
             double x1;
@@ -320,6 +318,7 @@ public class Optimum {
         List<double[]> points = new ArrayList<>();
         points.add(new double[]{x1, f(x1)});
         points.add(new double[]{x2, f(x2)});
+
         while (Math.abs(x2 - x1) >= epsilon && iter < iterationLimit) {
             iter++;
             if (FIND_MIN) {
@@ -353,123 +352,70 @@ public class Optimum {
     }
 
     public static void main(String[] args) {
-        runDwudzielna();
-        runFibonacciego();
-        runBisekcji();
-        runStycznych();
-        runSiecznych();
-        runZlotegoPodzialu();
+        run("Dwudzielna");
+        run("Fibonacciego");
+        run("Bisekcji");
+        run("Stycznych");
+        run("Siecznych");
+        run("Zlotego Podzialu");
     }
 
-    private static void runDwudzielna() {
-        System.out.println("\n======= Metoda Dwudzielna =======");
+    private static void run(String name) {
+        System.out.println("\n======= Metoda " + name + " =======");
         setDefaultRegion();
         for (double e : epsilons) {
             System.out.println("\n=== Epsilon: " + e + " ===");
-
-            OptimizationResult result = dwudzielnaSearch(e, maxIter);
+            OptimizationResult result;
+            switch (name) {
+                case "Dwudzielna":
+                    result = dwudzielnaSearch(e, maxIter);
+                    break;
+                case "Fibonacciego":
+                    result = fibonacciSearch(e, maxIter);
+                    break;
+                case "Bisekcji":
+                    result = bisectionSearch(e, maxIter);
+                    break;
+                case "Stycznych":
+                    result = newtonSearch(e, maxIter);
+                    break;
+                case "Siecznych":
+                    result = secantSearch(e, maxIter);
+                    break;
+                case "Zlotego Podzialu":
+                    result = goldenSearch(e, maxIter);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown method: " + name);
+            }
             System.out.println(result);
             setDefaultRegion();
         }
         for (int i : iterations) {
             System.out.println("\n=== Max iterations: " + i + " ===");
-
-            OptimizationResult result = dwudzielnaSearch(epsilonZero, i);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-    }
-
-    private static void runFibonacciego() {
-        System.out.println("\n======= Metoda Fibonacciego =======");
-        setDefaultRegion();
-        for (double e : epsilons) {
-            System.out.println("\n=== Epsilon: " + e + " ===");
-
-            OptimizationResult result = fibonacciSearch(e, maxIter);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-        for (int i : iterations) {
-            System.out.println("\n=== Max iterations: " + i + " ===");
-
-            OptimizationResult result = fibonacciSearch(epsilonZero, i);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-    }
-
-    private static void runBisekcji() {
-        System.out.println("\n======= Metoda Bisekcji =======");
-        setDefaultRegion();
-        for (double e : epsilons) {
-            System.out.println("\n=== Epsilon: " + e + " ===");
-
-            OptimizationResult result = bisectionSearch(e, maxIter);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-        for (int i : iterations) {
-            System.out.println("\n=== Max iterations: " + i + " ===");
-
-            OptimizationResult result = bisectionSearch(epsilonZero, i);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-    }
-
-    private static void runStycznych() {
-        System.out.println("\n======= Metoda Stycznych =======");
-        setDefaultRegion();
-        for (double e : epsilons) {
-            System.out.println("\n=== Epsilon: " + e + " ===");
-
-            OptimizationResult result = newtonSearch(e, maxIter);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-        for (int i : iterations) {
-            System.out.println("\n=== Max iterations: " + i + " ===");
-
-            OptimizationResult result = newtonSearch(epsilonZero, i);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-    }
-
-    private static void runSiecznych() {
-        System.out.println("\n======= Metoda Siecznych =======");
-        setDefaultRegion();
-        for (double e : epsilons) {
-            System.out.println("\n=== Epsilon: " + e + " ===");
-
-            OptimizationResult result = secantSearch(e, maxIter);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-        for (int i : iterations) {
-            System.out.println("\n=== Max iterations: " + i + " ===");
-
-            OptimizationResult result = secantSearch(epsilonZero, i);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-    }
-
-    private static void runZlotegoPodzialu() {
-        System.out.println("\n======= Metoda Zlotego Podzialu =======");
-        setDefaultRegion();
-        for (double e : epsilons) {
-            System.out.println("\n=== Epsilon: " + e + " ===");
-
-            OptimizationResult result = goldenSearch(e, maxIter);
-            System.out.println(result);
-            setDefaultRegion();
-        }
-        for (int i : iterations) {
-            System.out.println("\n=== Max iterations: " + i + " ===");
-
-            OptimizationResult result = goldenSearch(epsilonZero, i);
+            OptimizationResult result;
+            switch (name) {
+                case "Dwudzielna":
+                    result = dwudzielnaSearch(epsilonZero, i);
+                    break;
+                case "Fibonacciego":
+                    result = fibonacciSearch(epsilonZero, i);
+                    break;
+                case "Bisekcji":
+                    result = bisectionSearch(epsilonZero, i);
+                    break;
+                case "Stycznych":
+                    result = newtonSearch(epsilonZero, i);
+                    break;
+                case "Siecznych":
+                    result = secantSearch(epsilonZero, i);
+                    break;
+                case "Zlotego Podzialu":
+                    result = goldenSearch(epsilonZero, i);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown method: " + name);
+            }
             System.out.println(result);
             setDefaultRegion();
         }
