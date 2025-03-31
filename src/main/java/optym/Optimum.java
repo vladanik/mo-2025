@@ -9,10 +9,6 @@ public class Optimum {
 
     public static final Boolean IS_TEST = true;
 
-    public static final Boolean example1 = false; // (100 - x)^2
-    public static final Boolean example2 = false; // 1/3x^3 + 1/2x^2 - 5x + 2
-    public static final Boolean example3 = true; // 1/3x^3 + 2.05x^2 - 9x + 15
-
     public static final double epsilonZero = 0;
     public static final double[] epsilons_S = { 0.1, 0.01, 0.001, 0.00001, 0.000000001, 0.0000000000001 };
     public static final double[] epsilons_T = { 0.001 };
@@ -22,67 +18,33 @@ public class Optimum {
     public static final int[] iterations_T = { };
     public static final int[] iterations = IS_TEST ? iterations_T : iterations_S;
 
-    public static final double X = example1 ? 100.0 : (example2 ? (-1.0 + Math.sqrt(21)) / 2.0 : (-41.0 - Math.sqrt(5281)) / 20.0);
-    public static final Boolean FIND_MIN = example1 || example2;
+    public static final double X = (-41.0 - Math.sqrt(5281)) / 20.0;
+    public static final Boolean FIND_MIN = false;
 
     public static double a;
     public static double b;
     
     public static void setDefaultRegion() {
-        a = example1 ? 60 : (example2 ? 1 : -10);
-        b = example1 ? 150 : (example2 ? 2 : -3);
+        a = -10;
+        b = -3;
     }
 
     public static double f(double x) {
-        if (example1) {
-            return Math.pow(100 - x, 2);
-        }
-        if (example2) {
-            return (1.0/3.0) * Math.pow(x, 3) + (1.0/2.0) * Math.pow(x, 2) - 5 * x + 2;
-        }
-        if (example3) {
-            return (1.0/3.0) * Math.pow(x, 3) + 2.05 * Math.pow(x, 2) - 9 * x + 15;
-        }
-        return 0;
+        return (1.0/3.0) * Math.pow(x, 3) + 2.05 * Math.pow(x, 2) - 9 * x + 15; // 1/3x^3 + 2.05x^2 - 9x + 15
     }
 
     public static double[] fp(double x) {
-        if (example1) {
-            DerivativeStructure xDS = new DerivativeStructure(1, 2, 0, x);
-            DerivativeStructure result = xDS.multiply(-1).add(100).pow(2);
+        DerivativeStructure xDS = new DerivativeStructure(1, 3, 0, x);
+        DerivativeStructure term1 = xDS.pow(3).multiply(1.0/3.0);
+        DerivativeStructure term2 = xDS.pow(2).multiply(2.05);
+        DerivativeStructure term3 = xDS.multiply(-9);
+        DerivativeStructure result = term1.add(term2).add(term3).add(15);
 
-            double value = result.getValue();
-            double derivative1 = result.getPartialDerivative(1);
-            double derivative2 = result.getPartialDerivative(2);
-            return new double[]{value, derivative1, derivative2};
-        }
-        if (example2) {
-            DerivativeStructure xDS = new DerivativeStructure(1, 3, 0, x);
-            DerivativeStructure term1 = xDS.pow(3).multiply(1.0/3.0);
-            DerivativeStructure term2 = xDS.pow(2).multiply(1.0/2.0);
-            DerivativeStructure term3 = xDS.multiply(-5);
-            DerivativeStructure result = term1.add(term2).add(term3).add(2);
-
-            double value = result.getValue();
-            double derivative1 = result.getPartialDerivative(1);
-            double derivative2 = result.getPartialDerivative(2);
-            double derivative3 = result.getPartialDerivative(3);
-            return new double[]{value, derivative1, derivative2, derivative3};
-        }
-        if (example3) {
-            DerivativeStructure xDS = new DerivativeStructure(1, 3, 0, x);
-            DerivativeStructure term1 = xDS.pow(3).multiply(1.0/3.0);
-            DerivativeStructure term2 = xDS.pow(2).multiply(2.05);
-            DerivativeStructure term3 = xDS.multiply(-9);
-            DerivativeStructure result = term1.add(term2).add(term3).add(15);
-
-            double value = result.getValue();
-            double derivative1 = result.getPartialDerivative(1);
-            double derivative2 = result.getPartialDerivative(2);
-            double derivative3 = result.getPartialDerivative(3);
-            return new double[]{value, derivative1, derivative2, derivative3};
-        }
-        return null;
+        double value = result.getValue();
+        double derivative1 = result.getPartialDerivative(1);
+        double derivative2 = result.getPartialDerivative(2);
+        double derivative3 = result.getPartialDerivative(3);
+        return new double[]{value, derivative1, derivative2, derivative3};
     }
 
     public static class OptimizationResult {
@@ -391,15 +353,11 @@ public class Optimum {
     }
 
     public static void main(String[] args) {
-        if (example1 || example3) {
-            runDwudzielna();
-            runFibonacciego();
-        }
-        if (example2 || example3) {
-            runBisekcji();
-            runStycznych();
-            runSiecznych();
-        }
+        runDwudzielna();
+        runFibonacciego();
+        runBisekcji();
+        runStycznych();
+        runSiecznych();
         runZlotegoPodzialu();
     }
 
