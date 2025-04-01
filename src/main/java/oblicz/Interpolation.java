@@ -10,6 +10,9 @@ public class Interpolation {
     static List<Double> dfs = new ArrayList<>();
     static double x;
 
+    static List<Double> xList;
+    static int n;
+
     private static void input() {
         if (userInput) {
             Scanner sc = new Scanner(System.in);
@@ -46,20 +49,25 @@ public class Interpolation {
             dfs.add(1003.0);
             x = 3;
         }
-        System.out.println("----------------------------------------------------------------------------------");
-        for (Double xn : pairs.keySet()) {
+        xList = new ArrayList<>(pairs.keySet());
+        Collections.sort(xList);
+        n = pairs.size();
+
+        System.out.println("-------------------------------------------------------------------------------------------------------------------------------------------");
+        for (Double xn : xList) {
             System.out.printf("f(%.1f) = %.1f, ", xn, pairs.get(xn));
         }
+        System.out.printf("f'(%.1f) = %.1f, f'(%.1f) = %.1f, ", xList.get(0), dfs.get(0), xList.get(xList.size() - 1), dfs.get(1));
         System.out.println("x = " + x);
-        System.out.println("----------------------------------------------------------------------------------");
+        System.out.println("-------------------------------------------------------------------------------------------------------------------------------------------");
     }
 
     private static double lagrunge() {
         double w = 0.0;
-        for (Double xn : pairs.keySet()) {
+        for (Double xn : xList) {
             double fracU = 1.0;
             double fracD = 1.0;
-            for (Double xf : pairs.keySet()) {
+            for (Double xf : xList) {
                 if (!xf.equals(xn)) {
                     fracU *= x - xf;
                     fracD *= xn - xf;
@@ -71,8 +79,6 @@ public class Interpolation {
     }
 
     private static double newtonIR() {
-        int n = pairs.size();
-        List<Double> xList = new ArrayList<>(pairs.keySet());
         double[][] diffQuot = new double[n][n];
 
         for (int i = 0; i < n; i++) {
@@ -95,15 +101,37 @@ public class Interpolation {
         return w;
     }
 
+    private static double newtonRP() {
+        if (!Helper.isValidH(xList)) {
+            System.out.println("Punkty nie są równoodległe. Metoda Newtona z różnicami progresywnymi nie może być użyta.");
+            return Double.NaN;
+        }
+
+        double h = xList.get(1) - xList.get(0);
+        double[][] diff = new double[n][n];
+        for (int i = 0; i < n; i++) {
+            diff[i][0] = pairs.get(xList.get(i));
+        }
+        for (int j = 1; j < n; j++) {
+            for (int i = 0; i < n - j; i++) {
+                diff[i][j] = diff[i + 1][j - 1] - diff[i][j - 1];
+            }
+        }
+
+        double result = diff[0][0];
+        double product = 1;
+        for (int k = 1; k < n; k++) {
+            product *= (x - xList.get(k - 1));
+            result += (diff[0][k] / (Helper.factorial(k) * Math.pow(h, k))) * product;
+        }
+        return result;
+    }
+
     private static double[] splineCoeffs;
     private static double spline() {
-        int n = pairs.size();
-        List<Double> xList = new ArrayList<>(pairs.keySet());
-        Collections.sort(xList);
-
-        int an = n + 2; // 4 (a_0...a_3) + (n-2) (alpha_1...alpha_n-2)
-        double[][] A = new double[an][an];
-        double[] b = new double[an];
+        // 4 (a_0...a_3) + (n-2) (alpha_1...alpha_n-2) = n + 2
+        double[][] A = new double[n + 2][n + 2];
+        double[] b = new double[n + 2];
 
         // x_0: S3(x_0) = W3(x_0)
         A[0][0] = 1;
@@ -146,7 +174,7 @@ public class Interpolation {
         }
         b[n + 1] = dfs.get(1);
 
-        double[] coeffs = gaussElimination(A, b);
+        double[] coeffs = Helper.gaussElimination(A, b);
         splineCoeffs = coeffs.clone();
 
         double w3 = coeffs[0] + coeffs[1] * x + coeffs[2] * x * x + coeffs[3] * x * x * x;
@@ -165,7 +193,6 @@ public class Interpolation {
                 w3 += coeffs[3 + j] * Math.pow(x - xList.get(j), 3);
             }
         }
-
         return w3;
     }
 
@@ -186,42 +213,7 @@ public class Interpolation {
         input();
         getResult("LaGrunge", lagrunge());
         getResult("Newton IR", newtonIR());
+        getResult("Newton RP", newtonRP());
         getResult("Sklejane", spline());
-    }
-
-    public static double[] gaussElimination(double[][] A, double[] b) {
-        int n = b.length;
-        for (int i = 0; i < n; i++) {
-            int max = i;
-            for (int j = i + 1; j < n; j++) {
-                if (Math.abs(A[j][i]) > Math.abs(A[max][i])) {
-                    max = j;
-                }
-            }
-            double[] temp = A[i];
-            A[i] = A[max];
-            A[max] = temp;
-            double t = b[i];
-            b[i] = b[max];
-            b[max] = t;
-
-            for (int j = i + 1; j < n; j++) {
-                double factor = A[j][i] / A[i][i];
-                b[j] -= factor * b[i];
-                for (int k = i; k < n; k++) {
-                    A[j][k] -= factor * A[i][k];
-                }
-            }
-        }
-
-        double[] x = new double[n];
-        for (int i = n - 1; i >= 0; i--) {
-            double sum = 0;
-            for (int j = i + 1; j < n; j++) {
-                sum += A[i][j] * x[j];
-            }
-            x[i] = (b[i] - sum) / A[i][i];
-        }
-        return x;
     }
 }
