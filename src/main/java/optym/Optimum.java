@@ -49,6 +49,7 @@ public class Optimum {
     public static class OptimizationResult {
         public double optimum;
         public double optimumValue;
+        public double errorPercentage;
         public int iterations;
         public String details;
 
@@ -62,7 +63,12 @@ public class Optimum {
         @Override
         public String toString() {
             return "x: " + optimum + ", f(x): " + optimumValue + ", iterations: " + iterations
-                    + (IS_TEST && details != null ? ("\n" + details) : "");
+                    + ", error: " + this.getErrorPercentage() + (IS_TEST && details != null ? ("\n" + details) : "");
+        }
+
+        private String getErrorPercentage() {
+            double errorP = Math.abs((X - this.optimum) / X) * 100.0;
+            return String.format("%.6f%%", errorP);
         }
     }
 
