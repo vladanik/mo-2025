@@ -10,7 +10,7 @@ public class NumericalIntegration {
 
     static final double a = 1.4, b = 3.2;
     static double f(double x) {
-        return (Math.sin(1.1 * x - 0.3)) / (2.5 + Math.pow(x, 2)); // 14
+        return (Math.sin(1.1 * x - 0.3)) / (2.5 + Math.pow(x, 2));
     }
 
     static int n;
@@ -88,7 +88,7 @@ public class NumericalIntegration {
     static {
         gaussData.put(2, new double[][]{
                 {-0.5773502691896257, 0.5773502691896257},
-                { 1.0000000000000000, 1}
+                { 1.0000000000000000, 1.0000000000000000}
         });
         gaussData.put(4, new double[][]{
                 {-0.3399810435848563, 0.3399810435848563, -0.8611363115940526, 0.8611363115940526},
